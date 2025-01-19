@@ -73,8 +73,14 @@ impl Il2CppString {
     /// let string = Il2CppString::new("A new string");
     /// ```j
     pub fn new<'a>(string: impl AsRef<str>) -> &'a Il2CppString {
-        let cock = std::ffi::CString::new(string.as_ref()).unwrap();
-        unsafe { string_new(cock.as_bytes_with_nul().as_ptr()) }
+        //if !string.as_ref().is_empty() { 
+        let cock = std::ffi::CString::new(string.as_ref());
+        if cock.is_ok() {
+            unsafe { string_new(cock.unwrap().as_bytes_with_nul().as_ptr()) }
+        }
+        else {
+            Il2CppString::class().get_static_fields::<&'a Il2CppString>()   
+        }
     }
 
     pub fn new_static(string: impl AsRef<str>) -> &'static mut Il2CppString {
@@ -138,6 +144,9 @@ impl Il2CppString {
 
     pub fn get_hash_code(&self) -> i32 {
         unsafe { system_string_get_hash_code(self, None) }
+    }
+    pub fn to_u16(&self) -> &[u16] {
+        unsafe { std::slice::from_raw_parts(self.string.as_ptr(), self.len as _) }
     }
 }
 
